@@ -1,5 +1,6 @@
 import os
 import sys
+import random
 
 import pygame
 FPS = 15
@@ -16,11 +17,11 @@ class Board:
         self.cell_size = 30
 
     # настройка внешнего вида
-    def set_view(self, left, top, cell_size, color1, color2, color3):
+    def set_view(self, left, top, cell_size, color1, color2):
         self.left = left
         self.top = top
         self.cell_size = cell_size
-        self.color = [color1, color2, color3]
+        self.color = [color1, color2]
 
     def render(self, surface: pygame.Surface):
         for row in range(len(self.board)):
@@ -61,21 +62,27 @@ def load_image(name, colorkey=None):
     return image
 
 
-image = load_image("back.jpg")
-
 if __name__ == '__main__':
     pygame.init()
-    screen = pygame.display.set_mode((700, 700))
+    screen = pygame.display.set_mode((1800, 950))
+    image = ['data/back.jpg', 'data/back1.jpg', 'data/back2.jpg']
+    back = pygame.image.load(random.choice(image))
+    image = load_image("purple.png")
+
+    back_rect = back.get_rect()
     board = Board(8, 8)
     clock = pygame.time.Clock()
-    board.set_view(70, 70, 70, 'white', 'brown', 'gray')
+    board.set_view(520, 80, 100, 'white', 'brown')
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         screen.fill((0, 0, 0))
+        screen.blit(back, back_rect)
         board.render(screen)
+        image1 = pygame.transform.scale(image, (95, 95))
+        screen.blit(image1, (520, 100))
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
