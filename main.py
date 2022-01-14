@@ -8,7 +8,7 @@ WIDTH = 1800
 HEIGHT = 1000
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 15
+FPS = 40
 SELECTED = False
 LEVEL_PURPLE = 1
 LEVEL_BLUE = 1
@@ -89,7 +89,7 @@ class Board:
 
 
 class Pig_purple(pygame.sprite.Sprite):
-    PURPLE = load_image("purple.png")
+    PURPLE = load_image("black.png")
 
     def __init__(self, number):
         pygame.sprite.Sprite.__init__(self)
@@ -115,7 +115,7 @@ class Pig_purple(pygame.sprite.Sprite):
 
 
 class Pig_blue(pygame.sprite.Sprite):
-    BLUE = load_image("blue.png")
+    BLUE = load_image("white.png")
 
     def __init__(self, number):
         pygame.sprite.Sprite.__init__(self)
@@ -132,30 +132,41 @@ class Pig_blue(pygame.sprite.Sprite):
     def update(self, types, *args):
         global SELECTED
         global RADIUS
-        if types == 2 and SELECTED and self.select == 1:
+        global TURN_PLAYER
+
+        if self.life and types == 2 and SELECTED and self.select:
             LEN = ((self.rect.x + RADIUS - args[0][0]) ** 2 + (self.rect.y + RADIUS - args[0][1]) ** 2) ** 0.5
-            if RADIUS < LEN <= RADIUS * 2.5:
-                self.vector = (args[0][0] - self.rect.x, args[0][1] - self.rect.y)
-            elif RADIUS * 2.5 > LEN:
-                self.vector = ((self.rect.x + RADIUS) + 2.5 * RADIUS * (args[0][0] - self.rect.x) / LEN,
-                               (self.rect.y + RADIUS) + 2.5 * RADIUS * (args[0][1] - self.rect.y) / LEN)
-            pygame.draw.aaline(screen, (237, 118, 14), [args[0][0], args[0][1]], [self.vector[0], self.vector[1]])
+            if LEN <= RADIUS * 2.5:
+                self.vector = (args[0][0], args[0][1])
+            elif RADIUS * 2.5 < LEN:
+                self.vector = (2.5 * RADIUS * (args[0][0] - self.rect.x - RADIUS) / LEN + self.rect.x + RADIUS,
+                               2.5 * RADIUS * (args[0][1] - self.rect.y - RADIUS) / LEN + self.rect.y + RADIUS)
+            pygame.draw.line(screen, (50, 18, 122), [self.rect.x + RADIUS, self.rect.y + RADIUS],
+                             [self.vector[0], self.vector[1]], 6)
+            pygame.draw.line(screen, (102, 0, 255), [self.rect.x + RADIUS, self.rect.y + RADIUS],
+                             [self.vector[0], self.vector[1]], 2)
         if self.life and types == 0 and (
                 self.rect.x > 1385 or self.rect.x < 525 or self.rect.y < 85 or self.rect.y > 885):
-            self.rect.x = WIDTH + DIAMETR
-            self.rect.y = HEIGHT + DIAMETR
+            self.rect.x = WIDTH
+            self.rect.x += 10
+            self.rect.y += 10
+            self.rect.y = HEIGHT
             PIGS_BLUE[self.number] = 0
             self.life = False
+            self.rect.x += self.fast ** 2 / self.vector[0]
+            self.rect.y += self.fast ** 2 / self.vector[0]
         elif self.life and types == 1 and ((self.rect.x + RADIUS - args[0][0]) ** 2 +
                                            (self.rect.y + RADIUS - args[0][1]) ** 2) <= RADIUS ** 2 and not SELECTED:
             print(self.number)
             SELECTED = True
             self.select = True
+        elif self.life and types == 3:
+            self.fast = ((self.rect.x + RADIUS - self.vector[0]) ** 2 + (
+                        self.rect.y + RADIUS - self.vector[1]) ** 2) ** 0.5
+            TURN_PLAYER = 2
 
 
 #            self.fast = (self.vector[0] ** 2 + self.vector[1] ** 2) ** 0.5
-    def draw(self):
-        pygame.draw.aaline(screen, (237, 118, 14), [10, 70], [290, 55])
 
 
 
@@ -190,6 +201,13 @@ if __name__ == '__main__':
     screen.blit(back, back_rect)
     board.render(screen)
     while running:
+        board.set_view(520, 80, 100, 'white', 'brown')
+        screen.blit(back, back_rect)
+        board.render(screen)
+        blue_pigs.draw(screen)
+        purple_pigs.draw(screen)
+        purple_pigs.update(0)
+        blue_pigs.update(0)
         randomka_blue = random.randint(0, 7)
         while not PIGS_BLUE[randomka_blue] or all(x == 0 for x in PIGS_BLUE):
             randomka_blue = random.randint(0, 7)
@@ -199,17 +217,14 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and SELECTED and TURN_PLAYER == 1:
+                blue_pigs.update(3, event.pos)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if TURN_PLAYER == 1 and SELECTED == False:
+                if TURN_PLAYER == 1 and not SELECTED:
                     blue_pigs.update(1, event.pos)
                     purple_pigs.update(1, randomka_purple, randomka_blue)
-            if event.type == pygame.MOUSEMOTION and TURN_PLAYER == 1 and SELECTED == True:
-                    blue_pigs.update(2, event.pos)
-
-        blue_pigs.update(0)
-        blue_pigs.draw(screen)
-        purple_pigs.update(0)
-        purple_pigs.draw(screen)
+        if TURN_PLAYER == 1 and SELECTED:
+            blue_pigs.update(2, pygame.mouse.get_pos())
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
