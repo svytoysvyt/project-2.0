@@ -18,6 +18,8 @@ FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
 FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
 PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
 PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
+BLACK_cordinat = [1, 1, 1, 1, 1, 1, 1, 1]
+WHITE_cordinat = [1, 1, 1, 1, 1, 1, 1, 1]
 IMAGE = ['data/back.jpg', 'data/back1.jpg', 'data/back2.jpg']
 
 
@@ -92,7 +94,6 @@ class Pig_black(pygame.sprite.Sprite):
 класс черных шашек
     """
     BLACK = load_image("black.png")
-
     def __init__(self, number):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(Pig_black.BLACK, (RADIUS * 2, RADIUS * 2))
@@ -102,6 +103,7 @@ class Pig_black(pygame.sprite.Sprite):
         self.number = number
         self.vector = (0, 0)
         self.fast = 0
+        BLACK_cordinat[self.number] = [self.rect, self.vector, self.fast]
         self.select = False
 
     def update(self, types, *args):
@@ -114,8 +116,108 @@ class Pig_black(pygame.sprite.Sprite):
         """
         global SELECTED
         global TURN_PLAYER
+        global BLACK_cordinat
+        global WHITE_cordinat
         if types == 666:
             self.kill()
+        self.fast = BLACK_cordinat[self.number][2]
+        self.vector = BLACK_cordinat[self.number][1]
+        for i in range(8):
+            if i == self.number:
+                continue
+            x1 = self.rect.x
+            y1 = self.rect.y
+            x2 = BLACK_cordinat[i][0][0]
+            y2 = BLACK_cordinat[i][0][1]
+            dx1 = self.vector[0]
+            dy1 = self.vector[1]
+            dx2 = BLACK_cordinat[i][1][0]
+            dy2 = BLACK_cordinat[i][1][1]
+            Dx = (x1 - x2)
+            Dy = (y1 - y2)
+            d = (Dx ** 2 + Dy ** 2) ** 0.5
+            if d == 0:
+                d = 0.01
+            s = Dx / d
+            e = Dy / d
+            if d <= 2 * RADIUS:
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                dt = (2 * RADIUS - d) / (Vn1 - Vn2)
+                if dt > 1.5:
+                    dt = 1.5
+                elif dt < -1.5:
+                    dt = -1.5
+                x1 -= dx1 * dt
+                y1 -= dy1 * dt
+                x2 -= dx2 * dt
+                y2 -= dy2 * dt
+                Dx = (x1 - x2)
+                Dy = (y1 - y2)
+                d = (Dx ** 2 + Dy ** 2) ** 0.5
+                if d == 0:
+                    d = 0.01
+                s = Dx / d
+                e = Dy / d
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                Vt1 = -dx2 * e + dy2 * s
+                Vt2 = -dx1 * e + dy1 * s
+
+                o = Vn2
+                Vn2 = Vn1
+                Vn1 = o
+                self.fast = (self.fast + BLACK_cordinat[i][2]) / 2
+                BLACK_cordinat[i][2] = self.fast
+                self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
+                BLACK_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
+        for i in range(8):
+            x1 = self.rect.x
+            y1 = self.rect.y
+            x2 = WHITE_cordinat[i][0][0]
+            y2 = WHITE_cordinat[i][0][1]
+            dx1 = self.vector[0]
+            dy1 = self.vector[1]
+            dx2 = WHITE_cordinat[i][1][0]
+            dy2 = WHITE_cordinat[i][1][1]
+            Dx = (x1 - x2)
+            Dy = (y1 - y2)
+            d = (Dx ** 2 + Dy ** 2) ** 0.5
+            if d == 0:
+                d = 0.01
+            s = Dx / d
+            e = Dy / d
+            if d <= 2 * RADIUS:
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                dt = (2 * RADIUS - d) / (Vn1 - Vn2)
+                if dt > 1.5:
+                    dt = 1.5
+                elif dt < -1.5:
+                    dt = -1.5
+                x1 -= dx1 * dt
+                y1 -= dy1 * dt
+                x2 -= dx2 * dt
+                y2 -= dy2 * dt
+                Dx = (x1 - x2)
+                Dy = (y1 - y2)
+                d = (Dx ** 2 + Dy ** 2) ** 0.5
+                if d == 0:
+                    d = 0.01
+                s = Dx / d
+                e = Dy / d
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                Vt1 = -dx2 * e + dy2 * s
+                Vt2 = -dx1 * e + dy1 * s
+
+                o = Vn2
+                Vn2 = Vn1
+                Vn1 = o
+                self.fast = (self.fast + WHITE_cordinat[i][2]) / 2
+                WHITE_cordinat[i][2] = self.fast
+                self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
+                WHITE_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
         if types == 0 and (self.rect.x + RADIUS > 1320 or self.rect.x + RADIUS < 520 or
                            self.rect.y + RADIUS < 80 or self.rect.y + RADIUS > 880):
             self.rect.x = WIDTH
@@ -145,6 +247,7 @@ class Pig_black(pygame.sprite.Sprite):
 
         elif (TURN_PLAYER == 3 or TURN_PLAYER == 2) and self.fast:
             FASTB[self.number] = self.fast
+
             if self.fast > 0:
                 self.fast -= 2.2
                 self.rect = self.rect.move(self.vector[0] * self.fast // 100, self.vector[1] * self.fast // 100)
@@ -159,6 +262,7 @@ class Pig_black(pygame.sprite.Sprite):
                     TURN_PLAYER = 1
                 SELECTED = False
                 self.select = False
+        BLACK_cordinat[self.number] = [self.rect, self.vector, self.fast]
 
 
 #           if pygame.sprite.spritecollideany(self, horizontal_borders):
@@ -182,6 +286,7 @@ class Pig_white(pygame.sprite.Sprite):
         self.number = number
         self.vector = (0, 0)
         self.fast = 0
+        WHITE_cordinat[self.number] = [self.rect, self.vector, self.fast]
         self.select = False
         PIGS_WHITE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
 
@@ -191,6 +296,106 @@ class Pig_white(pygame.sprite.Sprite):
         global TURN_PLAYER
         if types == 666:
             self.kill()
+        self.vector = WHITE_cordinat[self.number][1]
+        self.fast = WHITE_cordinat[self.number][2]
+        for i in range(8):
+            x1 = self.rect.x
+            y1 = self.rect.y
+            x2 = BLACK_cordinat[i][0][0]
+            y2 = BLACK_cordinat[i][0][1]
+            dx1 = self.vector[0]
+            dy1 = self.vector[1]
+            dx2 = BLACK_cordinat[i][1][0]
+            dy2 = BLACK_cordinat[i][1][1]
+            Dx = (x1 - x2)
+            Dy = (y1 - y2)
+            d = (Dx ** 2 + Dy ** 2) ** 0.5
+            if d == 0:
+                d = 0.01
+            s = Dx / d
+            e = Dy / d
+            if d <= 2 * RADIUS:
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                dt = (2 * RADIUS - d) / (Vn1 - Vn2)
+
+                if dt > 1.5:
+                    dt = 1.5
+                elif dt < -1.5:
+                    dt = -1.5
+                x1 -= dx1 * dt
+                y1 -= dy1 * dt
+                x2 -= dx2 * dt
+                y2 -= dy2 * dt
+                Dx = (x1 - x2)
+                Dy = (y1 - y2)
+                d = (Dx ** 2 + Dy ** 2) ** 0.5
+                if d == 0:
+                    d = 0.01
+                s = Dx / d
+                e = Dy / d
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                Vt1 = -dx2 * e + dy2 * s
+                Vt2 = -dx1 * e + dy1 * s
+
+                o = Vn2
+                Vn2 = Vn1
+                Vn1 = o
+                self.fast = (self.fast + BLACK_cordinat[i][2]) / 2
+                BLACK_cordinat[i][2] = self.fast
+                self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
+                BLACK_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
+        for i in range(8):
+            if i == self.number:
+                continue
+            x1 = self.rect.x
+            y1 = self.rect.y
+            x2 = WHITE_cordinat[i][0][0]
+            y2 = WHITE_cordinat[i][0][1]
+            dx1 = self.vector[0]
+            dy1 = self.vector[1]
+            dx2 = WHITE_cordinat[i][1][0]
+            dy2 = WHITE_cordinat[i][1][1]
+            Dx = (x1 - x2)
+            Dy = (y1 - y2)
+            d = (Dx ** 2 + Dy ** 2) ** 0.5
+            if d == 0:
+                d = 0.01
+            s = Dx / d
+            e = Dy / d
+            if d <= 2 * RADIUS:
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                dt = (2 * RADIUS - d) / (Vn1 - Vn2)
+
+                if dt > 1.5:
+                    dt = 1.5
+                elif dt < -1.5:
+                    dt = -1.5
+                x1 -= dx1 * dt
+                y1 -= dy1 * dt
+                x2 -= dx2 * dt
+                y2 -= dy2 * dt
+                Dx = (x1 - x2)
+                Dy = (y1 - y2)
+                d = (Dx ** 2 + Dy ** 2) ** 0.5
+                if d == 0:
+                    d = 0.01
+                s = Dx / d
+                e = Dy / d
+                Vn1 = dx2 * s + dy2 * e
+                Vn2 = dx1 * s + dy1 * e
+                Vt1 = -dx2 * e + dy2 * s
+                Vt2 = -dx1 * e + dy1 * s
+
+                o = Vn2
+                Vn2 = Vn1
+                Vn1 = o
+                self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
+                self.fast = (self.fast + WHITE_cordinat[i][2]) / 2
+                WHITE_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
+                WHITE_cordinat[i][2] = (self.fast + WHITE_cordinat[i][2]) / 2
         if types == 2 and self.select:
             print('jhgfde')
             LEN = ((self.rect.x + RADIUS - args[0][0]) ** 2 + (self.rect.y + RADIUS - args[0][1]) ** 2) ** 0.5
@@ -246,6 +451,7 @@ class Pig_white(pygame.sprite.Sprite):
                 self.select = False
 
             self.kill()
+        WHITE_cordinat[self.number] = [self.rect, self.vector, self.fast]
 
 
 if __name__ == '__main__':
@@ -299,6 +505,7 @@ if __name__ == '__main__':
             FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
             PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
             PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
+
             for i in range(8):
                 whire_pigs.add(Pig_white(i))
                 black_pigs.add(Pig_black(i))
