@@ -10,25 +10,22 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 40
 SELECTED = False
-LEVEL_PURPLE = 1
-LEVEL_BLUE = 1
+LEVEL_BLACK = 1
+LEVEL_WHITE = 1
 TURN_PLAYER = 1
 RADIUS = 45
+FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
 FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
-FASTP = [0, 0, 0, 0, 0, 0, 0, 0]
-PIGS_BLUE = [1, 1, 1, 1, 1, 1, 1, 1]
-PIGS_PURPLE = [1, 1, 1, 1, 1, 1, 1, 1]
+PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
+PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
 IMAGE = ['data/back.jpg', 'data/back1.jpg', 'data/back2.jpg']
 
 
-def main_pigs():
-    SELECTED = False
-    TURN_PLAYER = 1
-    PIGS_BLUE = [1, 1, 1, 1, 1, 1, 1, 1]
-    PIGS_PURPLE = [1, 1, 1, 1, 1, 1, 1, 1]
-
-
 def load_image(name):
+    """
+    функция загрузка изображения
+
+    """
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -71,17 +68,12 @@ class Board:
                         width=0
                     )
                 else:
-                    pygame.draw.rect(
-                        surface=surface,
-                        color=self.color[1],
-                        rect=(
-                            self.left + self.cell_size * column,
-                            self.top + self.cell_size * row,
-                            self.cell_size,
-                            self.cell_size
-                        ),
-                        width=0
-                    )
+                    pygame.draw.rect(surface=surface, color=self.color[1], rect=(
+                        self.left + self.cell_size * column,
+                        self.top + self.cell_size * row,
+                        self.cell_size,
+                        self.cell_size
+                    ))
                 pygame.draw.rect(
                     surface=surface,
                     color='black',
@@ -95,33 +87,49 @@ class Board:
                 )
 
 
-class Pig_purple(pygame.sprite.Sprite):
-    PURPLE = load_image("black.png")
+class Pig_black(pygame.sprite.Sprite):
+    """
+класс черных шашек
+    """
+    BLACK = load_image("black.png")
 
     def __init__(self, number):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(Pig_purple.PURPLE, (RADIUS * 2, RADIUS * 2))
+        self.image = pygame.transform.scale(Pig_black.BLACK, (RADIUS * 2, RADIUS * 2))
         self.rect = self.image.get_rect()
         self.rect.x = 525 + 100 * number
-        self.rect.y = 85 + 100 * (LEVEL_PURPLE - 1)
+        self.rect.y = 85 + 100 * (LEVEL_BLACK - 1)
         self.number = number
         self.vector = (0, 0)
         self.fast = 0
         self.select = False
 
     def update(self, types, *args):
+        """'работа' этого класса
+
+        :param types:
+        тип с которым вызывают этот класс
+        :param args:
+        меняющиеся переменные
+        """
         global SELECTED
         global TURN_PLAYER
-
-        #       if pygame.sprite.spritecollideany(self, horizontal_borders):
-        #          self.vy = -self.vy
-        #     if pygame.sprite.spritecollideany(self, vertical_borders):
-        #        self.vx = -self.vx
-        if types == 0 and (
-                self.rect.x > 1385 or self.rect.x < 525 or self.rect.y < 85 or self.rect.y > 885):
+        if types == 666:
+            self.kill()
+        if types == 0 and (self.rect.x + RADIUS > 1320 or self.rect.x + RADIUS < 520 or
+                           self.rect.y + RADIUS < 80 or self.rect.y + RADIUS > 880):
             self.rect.x = WIDTH
             self.rect.y = HEIGHT
-            PIGS_PURPLE[self.number] = 0
+            PIGS_BLACK[self.number] = 0
+            FASTB[self.number] = 0
+            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
+                if TURN_PLAYER == 2:
+                    TURN_PLAYER = 0
+                else:
+                    TURN_PLAYER = 1
+                SELECTED = False
+                self.select = False
+
             self.kill()
         elif types == 1 and self.number == args[0] and not self.select:
             self.select = True
@@ -136,16 +144,15 @@ class Pig_purple(pygame.sprite.Sprite):
             TURN_PLAYER = 3
 
         elif (TURN_PLAYER == 3 or TURN_PLAYER == 2) and self.fast:
-            print((self.vector[0] * self.fast // 1000, self.vector[1] * self.fast // 1000), 'pppooioiuui')
-            FASTP[self.number] = self.fast
+            FASTB[self.number] = self.fast
             if self.fast > 0:
                 self.fast -= 2.2
                 self.rect = self.rect.move(self.vector[0] * self.fast // 100, self.vector[1] * self.fast // 100)
 
             else:
                 self.fast = 0
-            FASTP[self.number] = self.fast
-            if all(x == 0 for x in FASTP) and all(x == 0 for x in FASTB):
+            FASTB[self.number] = self.fast
+            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
@@ -160,25 +167,30 @@ class Pig_purple(pygame.sprite.Sprite):
 #               self.vector[1] *= -1
 
 
-class Pig_blue(pygame.sprite.Sprite):
-    BLUE = load_image("white.png")
+class Pig_white(pygame.sprite.Sprite):
+    """
+
+    """
+    WHITE = load_image("white.png")
 
     def __init__(self, number):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(Pig_blue.BLUE, (RADIUS * 2, RADIUS * 2))
+        self.image = pygame.transform.scale(Pig_white.WHITE, (RADIUS * 2, RADIUS * 2))
         self.rect = self.image.get_rect()
         self.rect.x = 525 + 100 * number
-        self.rect.y = 785 - 100 * (LEVEL_BLUE - 1)
+        self.rect.y = 785 - 100 * (LEVEL_WHITE - 1)
         self.number = number
         self.vector = (0, 0)
         self.fast = 0
         self.select = False
-        PIGS_BLUE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
+        PIGS_WHITE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
 
     def update(self, types, *args):
         global SELECTED
         global RADIUS
         global TURN_PLAYER
+        if types == 666:
+            self.kill()
         if types == 2 and self.select:
             print('jhgfde')
             LEN = ((self.rect.x + RADIUS - args[0][0]) ** 2 + (self.rect.y + RADIUS - args[0][1]) ** 2) ** 0.5
@@ -201,18 +213,18 @@ class Pig_blue(pygame.sprite.Sprite):
             print('hjjkfffkklklk')
             self.fast = ((self.vector[0]) ** 2 + (self.vector[1]) ** 2) ** 0.5 // 2
             TURN_PLAYER = 2
-            FASTB[self.number] = self.fast
+            FASTW[self.number] = self.fast
         if (TURN_PLAYER == 2 or TURN_PLAYER == 3) and self.fast:
-            FASTB[self.number] = self.fast
+            FASTW[self.number] = self.fast
             if self.fast > 0:
                 self.fast -= 2.2
                 print(self.fast, self.vector, 'kkk')
                 self.rect = self.rect.move(self.vector[0] * self.fast // 100, self.vector[1] * self.fast // 100)
             else:
-                print(self.fast, FASTB)
+                print(self.fast, FASTW)
                 self.fast = 0
-            FASTB[self.number] = self.fast
-            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTP):
+            FASTW[self.number] = self.fast
+            if all(x == 0 for x in FASTW) and all(x == 0 for x in FASTB):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
@@ -220,27 +232,29 @@ class Pig_blue(pygame.sprite.Sprite):
                 self.fast = 0
                 SELECTED = False
                 self.select = False
-        PIGS_BLUE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
-        if types == 0 and (self.rect.x + RADIUS > 1385 or self.rect.x + RADIUS < 525 or
-                           self.rect.y + RADIUS < 85 or self.rect.y + RADIUS > 885):
-            PIGS_BLUE[self.number] = 0
-            print(767676)
-            FASTB[self.number] = 0
-            SELECTED = False
+        PIGS_WHITE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
+        if types == 0 and (self.rect.x + RADIUS > 1320 or self.rect.x + RADIUS < 520 or
+                           self.rect.y + RADIUS < 80 or self.rect.y + RADIUS > 880):
+            PIGS_WHITE[self.number] = 0
+            FASTW[self.number] = 0
+            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
+                if TURN_PLAYER == 2:
+                    TURN_PLAYER = 0
+                else:
+                    TURN_PLAYER = 1
+                SELECTED = False
+                self.select = False
+
             self.kill()
 
 
-
-PURPLE = load_image("purple.png")
-
-
-def main():
+if __name__ == '__main__':
     pygame.display.set_caption('Чапаев')
-    blue_pigs = pygame.sprite.Group()
-    purple_pigs = pygame.sprite.Group()
+    whire_pigs = pygame.sprite.Group()
+    black_pigs = pygame.sprite.Group()
     for i in range(8):
-        blue_pigs.add(Pig_blue(i))
-        purple_pigs.add(Pig_purple(i))
+        whire_pigs.add(Pig_white(i))
+        black_pigs.add(Pig_black(i))
     back = pygame.image.load(random.choice(IMAGE))
     back_rect = back.get_rect()
     board = Board(8, 8)
@@ -252,34 +266,75 @@ def main():
     while running:
         screen.blit(back, back_rect)
         board.render(screen)
-        blue_pigs.draw(screen)
-        purple_pigs.draw(screen)
-        purple_pigs.update(0)
-        blue_pigs.update(0)
-        randomka_blue = random.randint(0, 7)
-        while not PIGS_BLUE[randomka_blue]:
-            randomka_blue = random.randint(0, 7)
-        randomka_purple = random.randint(0, 7)
-        while not PIGS_PURPLE[randomka_purple]:
-            randomka_purple = random.randint(0, 7)
-        randomka_blue = PIGS_BLUE[randomka_blue]
+        whire_pigs.draw(screen)
+        black_pigs.draw(screen)
+        black_pigs.update(0)
+        whire_pigs.update(0)
+        if not all(x == 0 for x in PIGS_WHITE) and all(x == 0 for x in PIGS_BLACK):
+            if LEVEL_WHITE + LEVEL_BLACK == 8:
+                LEVEL_BLACK -= 1
+            else:
+                LEVEL_WHITE += 1
+            black_pigs.update(666)
+            whire_pigs.update(666)
+            SELECTED = False
+            TURN_PLAYER = 1
+            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
+            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
+            PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
+            for i in range(8):
+                whire_pigs.add(Pig_white(i))
+                black_pigs.add(Pig_black(i))
+        elif all(x == 0 for x in PIGS_WHITE) and not all(x == 0 for x in PIGS_BLACK):
+            if LEVEL_WHITE + LEVEL_BLACK == 8:
+                LEVEL_WHITE -= 1
+            else:
+                LEVEL_BLACK += 1
+            black_pigs.update(666)
+            whire_pigs.update(666)
+            SELECTED = False
+            TURN_PLAYER = 1
+            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
+            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
+            PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
+            for i in range(8):
+                whire_pigs.add(Pig_white(i))
+                black_pigs.add(Pig_black(i))
+        elif all(x == 0 for x in PIGS_WHITE) and all(x == 0 for x in PIGS_BLACK):
+            black_pigs.update(666)
+            whire_pigs.update(666)
+            SELECTED = False
+            TURN_PLAYER = 1
+            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
+            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
+            PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
+            for i in range(8):
+                whire_pigs.add(Pig_white(i))
+                black_pigs.add(Pig_black(i))
+        randomka_white = random.randint(0, 7)
+        while not PIGS_WHITE[randomka_white]:
+            randomka_white = random.randint(0, 7)
+        randomka_black = random.randint(0, 7)
+        while not PIGS_BLACK[randomka_black]:
+            randomka_black = random.randint(0, 7)
+        randomka_white = PIGS_WHITE[randomka_white]
         if TURN_PLAYER == 1 and SELECTED:
-            blue_pigs.update(2, pygame.mouse.get_pos())
+            whire_pigs.update(2, pygame.mouse.get_pos())
         # if TURN_PLAYER == 2:
-        #     blue_pigs.update(2, pygame.mouse.get_pos())
+        #     whire_pigs.update(2, pygame.mouse.get_pos())
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and SELECTED and TURN_PLAYER == 1:
-                blue_pigs.update(3, event.pos)
+                whire_pigs.update(3, event.pos)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and TURN_PLAYER == 1 and not SELECTED:
-                blue_pigs.update(1, event.pos)
+                whire_pigs.update(1, event.pos)
             if TURN_PLAYER == 0:
-                purple_pigs.update(1, randomka_purple, randomka_blue)
+                black_pigs.update(1, randomka_black, randomka_white)
 
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
-
-
-main()
