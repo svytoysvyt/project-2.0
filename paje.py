@@ -1,6 +1,6 @@
 import pygame
 import os
-import game
+import opg
 pygame.init()
 
 # Переменная отвечающая за обновление экрана
@@ -16,9 +16,9 @@ screen_height = 1000
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Загрузка фонового изображения
-bg_menu = pygame.image.load("background_image_menu.jpg")
+bg_menu = pygame.image.load("data/background_image_menu.jpg")
 # Загрузка фонового изображения правил
-bg_rules = pygame.image.load('background_image_rules.jpg')
+bg_rules = pygame.image.load('data/background_image_rules.jpg')
 
 
 # Рендер текста
@@ -35,7 +35,7 @@ black = (0, 0, 0)
 yellow = (255, 255, 0)
 
 # Шрифт
-font = "opensans.ttf"
+font = "data/opensans.ttf"
 
 
 def main_menu():
@@ -105,7 +105,7 @@ def main_menu():
 
             if event.type == pygame.MOUSEBUTTONDOWN and not rules_wind:
                 if selected == "start":
-                    game.start_game()  # Запуск игры
+                    opg.start_game()  # Запуск игры
                 if selected == "rules":  # Блок правил
                     screen.blit(bg_rules, (0, 0))  # Отображение заднего фона
 

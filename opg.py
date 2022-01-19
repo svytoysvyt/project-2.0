@@ -7,6 +7,8 @@ import pygame
 WIDTH = 1800
 HEIGHT = 1000
 pygame.init()
+whire_pigs = pygame.sprite.Group()
+black_pigs = pygame.sprite.Group()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 40
 SELECTED = False
@@ -113,6 +115,7 @@ class Pig_black(pygame.sprite.Sprite):
         меняющиеся переменные
         """
         global SELECTED
+        global whire_pigs
         global TURN_PLAYER
         global BLACK_cordinat
         global WHITE_cordinat
@@ -299,6 +302,7 @@ class Pig_white(pygame.sprite.Sprite):
         global SELECTED
         global RADIUS
         global TURN_PLAYER
+        global black_pigs
         if types == 666:
             self.kill()
         if types == 777:
@@ -474,10 +478,19 @@ class Pig_white(pygame.sprite.Sprite):
         WHITE_cordinat[self.number] = [self.rect, self.vector, self.fast]
 
 
-if __name__ == '__main__':
+def start_game():
+    global PIGS_WHITE
+    global  SELECTED
+    global  TURN_PLAYER
+    global PIGS_BLACK
+    global LEVEL_BLACK
+    global LEVEL_WHITE
+    global BLACK_cordinat
+    global WHITE_cordinat
+    global whire_pigs
+    global black_pigs
     pygame.display.set_caption('Чапаев')
-    whire_pigs = pygame.sprite.Group()
-    black_pigs = pygame.sprite.Group()
+
     for i in range(8):
         whire_pigs.add(Pig_white(i))
         black_pigs.add(Pig_black(i))
@@ -563,3 +576,4 @@ if __name__ == '__main__':
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
+
