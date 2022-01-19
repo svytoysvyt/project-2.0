@@ -105,7 +105,8 @@ def main_menu():
 
             if event.type == pygame.MOUSEBUTTONDOWN and not rules_wind:
                 if selected == "start":
-                    opg.start_game()  # Запуск игры
+                    opg.start_game()# Запуск игры
+                    quit()
                 if selected == "rules":  # Блок правил
                     screen.blit(bg_rules, (0, 0))  # Отображение заднего фона
 
