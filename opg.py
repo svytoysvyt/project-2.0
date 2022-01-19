@@ -14,8 +14,6 @@ LEVEL_BLACK = 1
 LEVEL_WHITE = 1
 TURN_PLAYER = 1
 RADIUS = 45
-FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
-FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
 PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
 PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
 BLACK_cordinat = [1, 1, 1, 1, 1, 1, 1, 1]
@@ -120,6 +118,9 @@ class Pig_black(pygame.sprite.Sprite):
         global WHITE_cordinat
         if types == 666:
             self.kill()
+        if types == 777:
+            self.select = False
+
         self.fast = BLACK_cordinat[self.number][2]
         self.vector = BLACK_cordinat[self.number][1]
         for i in range(8):
@@ -144,12 +145,12 @@ class Pig_black(pygame.sprite.Sprite):
                 Vn1 = dx2 * s + dy2 * e
                 Vn2 = dx1 * s + dy1 * e
                 dt = (2 * RADIUS - d) / (Vn1 - Vn2)
-                if dt > 1.5:
-                    dt = 1.5
-                elif dt < -1.5:
-                    dt = -1.5
-                x1 -= dx1 * dt
-                y1 -= dy1 * dt
+                if dt > 0.6:
+                    dt = 0.6
+                elif dt < -0.6:
+                    dt = -0.6
+                self.rect.x -= dx1 * dt
+                self.rect.y -= dy1 * dt
                 x2 -= dx2 * dt
                 y2 -= dy2 * dt
                 Dx = (x1 - x2)
@@ -168,6 +169,8 @@ class Pig_black(pygame.sprite.Sprite):
                 Vn2 = Vn1
                 Vn1 = o
                 self.fast = (self.fast + BLACK_cordinat[i][2]) / 2
+                if self.fast < 0:
+                    self.fast = 0
                 BLACK_cordinat[i][2] = self.fast
                 self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
                 BLACK_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
@@ -191,12 +194,12 @@ class Pig_black(pygame.sprite.Sprite):
                 Vn1 = dx2 * s + dy2 * e
                 Vn2 = dx1 * s + dy1 * e
                 dt = (2 * RADIUS - d) / (Vn1 - Vn2)
-                if dt > 1.5:
-                    dt = 1.5
-                elif dt < -1.5:
-                    dt = -1.5
-                x1 -= dx1 * dt
-                y1 -= dy1 * dt
+                if dt > 0.6:
+                    dt = 0.6
+                elif dt < -0.6:
+                    dt = -0.6
+                self.rect.x -= dx1 * dt
+                self.rect.y -= dy1 * dt
                 x2 -= dx2 * dt
                 y2 -= dy2 * dt
                 Dx = (x1 - x2)
@@ -215,6 +218,8 @@ class Pig_black(pygame.sprite.Sprite):
                 Vn2 = Vn1
                 Vn1 = o
                 self.fast = (self.fast + WHITE_cordinat[i][2]) / 2
+                if self.fast < 0:
+                    self.fast = 0
                 WHITE_cordinat[i][2] = self.fast
                 self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
                 WHITE_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
@@ -223,20 +228,21 @@ class Pig_black(pygame.sprite.Sprite):
             self.rect.x = WIDTH
             self.rect.y = HEIGHT
             PIGS_BLACK[self.number] = 0
-            FASTB[self.number] = 0
-            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
+            BLACK_cordinat[self.number][2] = 0
+            if all(x[2] == 0 for x in BLACK_cordinat) and all(x[2] == 0 for x in WHITE_cordinat)\
+                    and (TURN_PLAYER == 2 or TURN_PLAYER == 3):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
                     TURN_PLAYER = 1
                 SELECTED = False
-                self.select = False
+                black_pigs.update(777)
+                whire_pigs.update(777)
 
             self.kill()
-        elif types == 1 and self.number == args[0] and not self.select:
+        elif types == 1 and self.number == args[0] and not SELECTED:
             self.select = True
             SELECTED = True
-            print(1737371, args)
             LEN = ((self.rect.x - args[1][0]) ** 2 + (self.rect.y - args[1][1]) ** 2) ** 0.5
             self.vector = (110 * (args[1][0] - self.rect.x) / LEN,
                            110 * (args[1][1] - self.rect.y) / LEN)
@@ -245,25 +251,24 @@ class Pig_black(pygame.sprite.Sprite):
             print(self.vector, self.fast, 898989889)
             TURN_PLAYER = 3
 
-        elif (TURN_PLAYER == 3 or TURN_PLAYER == 2) and self.fast:
-            FASTB[self.number] = self.fast
-
+        elif (TURN_PLAYER == 3 or TURN_PLAYER == 2) and self.fast != 0:
             if self.fast > 0:
                 self.fast -= 2.2
                 self.rect = self.rect.move(self.vector[0] * self.fast // 100, self.vector[1] * self.fast // 100)
 
             else:
                 self.fast = 0
-            FASTB[self.number] = self.fast
-            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
+
+            BLACK_cordinat[self.number][2] = self.fast
+            if all(x[2] == 0 for x in BLACK_cordinat) and all(x[2] == 0 for x in WHITE_cordinat):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
                     TURN_PLAYER = 1
                 SELECTED = False
-                self.select = False
+                black_pigs.update(777)
+                whire_pigs.update(777)
         BLACK_cordinat[self.number] = [self.rect, self.vector, self.fast]
-
 
 #           if pygame.sprite.spritecollideany(self, horizontal_borders):
 #              self.vector[0] *= -1
@@ -296,6 +301,8 @@ class Pig_white(pygame.sprite.Sprite):
         global TURN_PLAYER
         if types == 666:
             self.kill()
+        if types == 777:
+            self.select = False
         self.vector = WHITE_cordinat[self.number][1]
         self.fast = WHITE_cordinat[self.number][2]
         for i in range(8):
@@ -319,12 +326,12 @@ class Pig_white(pygame.sprite.Sprite):
                 Vn2 = dx1 * s + dy1 * e
                 dt = (2 * RADIUS - d) / (Vn1 - Vn2)
 
-                if dt > 1.5:
-                    dt = 1.5
-                elif dt < -1.5:
-                    dt = -1.5
-                x1 -= dx1 * dt
-                y1 -= dy1 * dt
+                if dt > 0.6:
+                    dt = 0.6
+                elif dt < -0.6:
+                    dt = -0.6
+                self.rect.x -= dx1 * dt
+                self.rect.y -= dy1 * dt
                 x2 -= dx2 * dt
                 y2 -= dy2 * dt
                 Dx = (x1 - x2)
@@ -344,6 +351,10 @@ class Pig_white(pygame.sprite.Sprite):
                 Vn1 = o
                 self.fast = (self.fast + BLACK_cordinat[i][2]) / 2
                 BLACK_cordinat[i][2] = self.fast
+                if self.fast < 0:
+                    self.fast = 0
+                if BLACK_cordinat[i][2] < 0:
+                    BLACK_cordinat[i][2] = 0
                 self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
                 BLACK_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
         for i in range(8):
@@ -369,12 +380,12 @@ class Pig_white(pygame.sprite.Sprite):
                 Vn2 = dx1 * s + dy1 * e
                 dt = (2 * RADIUS - d) / (Vn1 - Vn2)
 
-                if dt > 1.5:
-                    dt = 1.5
-                elif dt < -1.5:
-                    dt = -1.5
-                x1 -= dx1 * dt
-                y1 -= dy1 * dt
+                if dt > 0.6:
+                    dt = 0.6
+                elif dt < -0.6:
+                    dt = -0.6
+                self.rect.x -= dx1 * dt
+                self.rect.y -= dy1 * dt
                 x2 -= dx2 * dt
                 y2 -= dy2 * dt
                 Dx = (x1 - x2)
@@ -394,10 +405,11 @@ class Pig_white(pygame.sprite.Sprite):
                 Vn1 = o
                 self.vector = (Vn2 * s - Vt2 * e, Vn2 * e + Vt2 * s)
                 self.fast = (self.fast + WHITE_cordinat[i][2]) / 2
+                if self.fast < 0:
+                    self.fast = 0
                 WHITE_cordinat[i][1] = (Vn1 * s - Vt1 * e, Vn1 * e + Vt1 * s)
                 WHITE_cordinat[i][2] = (self.fast + WHITE_cordinat[i][2]) / 2
         if types == 2 and self.select:
-            print('jhgfde')
             LEN = ((self.rect.x + RADIUS - args[0][0]) ** 2 + (self.rect.y + RADIUS - args[0][1]) ** 2) ** 0.5
             if LEN <= RADIUS * 2.5:
                 self.vector = (args[0][0], args[0][1])
@@ -418,37 +430,45 @@ class Pig_white(pygame.sprite.Sprite):
             print('hjjkfffkklklk')
             self.fast = ((self.vector[0]) ** 2 + (self.vector[1]) ** 2) ** 0.5 // 2
             TURN_PLAYER = 2
-            FASTW[self.number] = self.fast
+            WHITE_cordinat[self.number][2] = self.fast
         if (TURN_PLAYER == 2 or TURN_PLAYER == 3) and self.fast:
-            FASTW[self.number] = self.fast
+            WHITE_cordinat[self.number][2] = self.fast
             if self.fast > 0:
                 self.fast -= 2.2
                 print(self.fast, self.vector, 'kkk')
                 self.rect = self.rect.move(self.vector[0] * self.fast // 100, self.vector[1] * self.fast // 100)
             else:
-                print(self.fast, FASTW)
                 self.fast = 0
-            FASTW[self.number] = self.fast
-            if all(x == 0 for x in FASTW) and all(x == 0 for x in FASTB):
+            WHITE_cordinat[self.number][2] = self.fast
+            print('er', TURN_PLAYER, self.number)
+            for i in WHITE_cordinat:
+                print(i[2])
+            print('y')
+            for i in BLACK_cordinat:
+                print(i[2])
+            print('uu')
+            if all(x[2] == 0 for x in BLACK_cordinat) and all(x[2] == 0 for x in WHITE_cordinat):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
                     TURN_PLAYER = 1
-                self.fast = 0
                 SELECTED = False
-                self.select = False
+                black_pigs.update(777)
+                whire_pigs.update(777)  
         PIGS_WHITE[self.number] = (self.rect.x + RADIUS, self.rect.y + RADIUS)
         if types == 0 and (self.rect.x + RADIUS > 1320 or self.rect.x + RADIUS < 520 or
                            self.rect.y + RADIUS < 80 or self.rect.y + RADIUS > 880):
             PIGS_WHITE[self.number] = 0
-            FASTW[self.number] = 0
-            if all(x == 0 for x in FASTB) and all(x == 0 for x in FASTW):
+            WHITE_cordinat[self.number][2] = 0
+            if all(x[2] == 0 for x in BLACK_cordinat) and all(x[2] == 0 for x in WHITE_cordinat)\
+                    and (TURN_PLAYER == 2 or TURN_PLAYER == 3):
                 if TURN_PLAYER == 2:
                     TURN_PLAYER = 0
                 else:
                     TURN_PLAYER = 1
                 SELECTED = False
-                self.select = False
+                black_pigs.update(777)
+                whire_pigs.update(777)
 
             self.kill()
         WHITE_cordinat[self.number] = [self.rect, self.vector, self.fast]
@@ -485,8 +505,8 @@ if __name__ == '__main__':
             whire_pigs.update(666)
             SELECTED = False
             TURN_PLAYER = 1
-            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
-            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            WHITE_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
+            BLACK_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
             PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
             PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
             for i in range(8):
@@ -501,8 +521,8 @@ if __name__ == '__main__':
             whire_pigs.update(666)
             SELECTED = False
             TURN_PLAYER = 1
-            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
-            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            WHITE_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
+            BLACK_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
             PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
             PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -514,8 +534,8 @@ if __name__ == '__main__':
             whire_pigs.update(666)
             SELECTED = False
             TURN_PLAYER = 1
-            FASTW = [0, 0, 0, 0, 0, 0, 0, 0]
-            FASTB = [0, 0, 0, 0, 0, 0, 0, 0]
+            WHITE_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
+            BLACK_cordinat = [0, 0, 0, 0, 0, 0, 0, 0]
             PIGS_WHITE = [1, 1, 1, 1, 1, 1, 1, 1]
             PIGS_BLACK = [1, 1, 1, 1, 1, 1, 1, 1]
             for i in range(8):
@@ -530,8 +550,6 @@ if __name__ == '__main__':
         randomka_white = PIGS_WHITE[randomka_white]
         if TURN_PLAYER == 1 and SELECTED:
             whire_pigs.update(2, pygame.mouse.get_pos())
-        # if TURN_PLAYER == 2:
-        #     whire_pigs.update(2, pygame.mouse.get_pos())
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
